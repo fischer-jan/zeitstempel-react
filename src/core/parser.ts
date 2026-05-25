@@ -228,9 +228,60 @@ function parseAttestation(c: Cursor): Attestation {
     // We need to strip that inner length prefix to get the actual URI.
     const innerCursor = new Cursor(payload);
     const uriBytes = innerCursor.readVarbytes();
-    return { type: 'pending', uri: new TextDecoder().decode(uriBytes) };
+    const uri = new TextDecoder().decode(uriBytes);
+    validateCalendarUri(uri);
+    return { type: 'pending', uri };
   }
   return { type: 'unknown', tag: tag, payload: payload };
+}
+
+/**
+ * Validate a pending-calendar URI from an .ots file.
+ *
+ * The URI is fully attacker-controlled (anyone who writes the .ots can
+ * put any string here), and the verifier will later fetch
+ * `${uri}/timestamp/${hex(digest)}` during an upgrade. Without
+ * validation that becomes an SSRF + digest-exfiltration primitive: a
+ * crafted .ots could point at internal services, the cloud metadata
+ * endpoint, or an attacker-controlled tracker.
+ *
+ * We require an https origin with a registrable hostname and no path,
+ * query, fragment, port, or user-info. That matches every real-world
+ * OpenTimestamps calendar URI (e.g. `https://alice.btc.calendar.opentimestamps.org`).
+ */
+function validateCalendarUri(uri: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(uri);
+  } catch {
+    throw new ParseError(`pending attestation URI is malformed: ${uri}`);
+  }
+  if (parsed.protocol !== 'https:') {
+    throw new ParseError(
+      `pending attestation URI must use https, got "${parsed.protocol}" in ${uri}`,
+    );
+  }
+  if (parsed.username !== '' || parsed.password !== '') {
+    throw new ParseError(`pending attestation URI must not contain user info: ${uri}`);
+  }
+  if (parsed.port !== '') {
+    throw new ParseError(`pending attestation URI must not specify a port: ${uri}`);
+  }
+  if (parsed.pathname !== '' && parsed.pathname !== '/') {
+    throw new ParseError(`pending attestation URI must not contain a path: ${uri}`);
+  }
+  if (parsed.search !== '' || parsed.hash !== '') {
+    throw new ParseError(`pending attestation URI must not contain a query or fragment: ${uri}`);
+  }
+  // URL.hostname returns IPv6 addresses with brackets ('[::1]'), so a
+  // leading '[' is enough to catch them.
+  const host = parsed.hostname.toLowerCase();
+  if (host.startsWith('[') || /^\d+\.\d+\.\d+\.\d+$/.test(host)) {
+    throw new ParseError(`pending attestation URI must not target an IP literal: ${uri}`);
+  }
+  if (host === 'localhost' || host.endsWith('.localhost') || !host.includes('.')) {
+    throw new ParseError(`pending attestation URI must be a registrable domain: ${uri}`);
+  }
 }
 
 /** Read a varuint from a standalone byte slice. */

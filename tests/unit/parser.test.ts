@@ -2,8 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { parseOts, countAttestations, findBitcoinHeight, hasPending, _Cursor as Cursor } from '../../src/core/parser.js';
+import { writeOts } from '../../src/core/writer.js';
 import { bytesToHex } from '../../src/core/hex.js';
-import type { Timestamp } from '../../src/core/types.js';
+import type { Timestamp, OtsFile } from '../../src/core/types.js';
 
 const FIXTURE_DIR = resolve(__dirname, '../fixtures');
 
@@ -103,6 +104,48 @@ describe('parseOts', () => {
 
     // Bitcoin block #358391
     expect(findBitcoinHeight(ots.timestamp)).toBe(358391);
+  });
+
+  // ── Calendar-URI validation ────────────────────────────────────
+  //
+  // The pending URI is fully attacker-controlled. parseOts must
+  // reject anything that isn't an https origin with a registrable
+  // hostname — otherwise upgrade becomes an SSRF + digest-exfil
+  // primitive.
+
+  function otsWithPendingUri(uri: string): Uint8Array {
+    const ots: OtsFile = {
+      hashOp: 'sha256',
+      fileDigest: new Uint8Array(32),
+      timestamp: {
+        attestations: [{ type: 'pending', uri }],
+        ops: [],
+      },
+    };
+    return writeOts(ots);
+  }
+
+  it('accepts a normal opentimestamps.org calendar URI', () => {
+    const bytes = otsWithPendingUri('https://alice.btc.calendar.opentimestamps.org');
+    expect(() => parseOts(bytes)).not.toThrow();
+  });
+
+  it.each([
+    ['http (no TLS)', 'http://alice.btc.calendar.opentimestamps.org'],
+    ['file URL', 'file:///etc/passwd'],
+    ['IPv4 literal', 'https://127.0.0.1'],
+    ['cloud metadata IP', 'https://169.254.169.254'],
+    ['IPv6 literal', 'https://[::1]'],
+    ['localhost', 'https://localhost'],
+    ['bare hostname', 'https://intranet'],
+    ['path component', 'https://attacker.example/exfil'],
+    ['query string', 'https://attacker.example?x=1'],
+    ['fragment', 'https://attacker.example#frag'],
+    ['port', 'https://attacker.example:8080'],
+    ['user info', 'https://user:pw@attacker.example'],
+  ])('rejects a pending URI with %s', (_label, uri) => {
+    const bytes = otsWithPendingUri(uri);
+    expect(() => parseOts(bytes)).toThrow();
   });
 
   it('parses golden pending fixture (from reference Python ots tool)', () => {
