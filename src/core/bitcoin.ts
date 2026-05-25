@@ -15,6 +15,16 @@ export interface BlockInfo {
 }
 
 /**
+ * Sanity checks for Bitcoin API responses. Mirrors the Rust port's
+ * `bitcoin.rs` Phase 1 defenses: an API endpoint that has been
+ * compromised, MITM'd, or routed through a tampering proxy can otherwise
+ * claim arbitrary merkle roots for arbitrary heights and forge proofs
+ * that verify successfully.
+ */
+const MIN_HEIGHT = 300_000;            // OTS usage started well after this.
+const MAX_FUTURE_SKEW_SECS = 2 * 3600; // Reject blocks claimed > 2h in the future.
+
+/**
  * Fetch block info for a given block height.
  * Tries Blockstream.info first, falls back to mempool.space.
  */
@@ -27,6 +37,14 @@ export async function getBlockInfo(height: number): Promise<BlockInfo> {
 }
 
 async function getBlockInfoFrom(baseUrl: string, height: number): Promise<BlockInfo> {
+  // Sanity check the height before issuing any network call — a proof
+  // claiming an implausibly-low block is almost certainly a forgery.
+  if (height < MIN_HEIGHT) {
+    throw new Error(
+      `block height ${height} is below minimum (${MIN_HEIGHT}); this looks like a spoofed response`,
+    );
+  }
+
   // Step 1: Get block hash from height
   const hashResponse = await fetch(`${baseUrl}/block-height/${height}`, {
     signal: AbortSignal.timeout(10_000),
@@ -57,6 +75,14 @@ async function getBlockInfoFrom(baseUrl: string, height: number): Promise<BlockI
   const timestamp = json.timestamp;
   if (typeof timestamp !== 'number') {
     throw new Error('Missing timestamp in block JSON');
+  }
+
+  // A block timestamp far in the future is impossible — if the API claims
+  // one, the response is either corrupt or hostile. Defend even if the
+  // height check above was satisfied.
+  const now = Math.floor(Date.now() / 1000);
+  if (timestamp > now + MAX_FUTURE_SKEW_SECS) {
+    throw new Error('block timestamp is in the future (more than 2h skew)');
   }
 
   return { height, blockHash, merkleRoot, timestamp };
