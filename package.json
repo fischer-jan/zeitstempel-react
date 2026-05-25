@@ -1,6 +1,6 @@
 {
   "name": "zeitstempel",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Lightweight OpenTimestamps library — stamp, upgrade, and verify — with optional React components",
   "type": "module",
   "main": "./dist/index.cjs",
