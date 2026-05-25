@@ -118,7 +118,19 @@ async function fetchUpgrade(uri: string, msg: Uint8Array): Promise<Timestamp | n
     throw new Error(`HTTP ${response.status} from ${url}`);
   }
 
+  // Cap the response at 1 MiB. Real calendar responses are ~4 KB; anything
+  // multi-megabyte is either a buggy server or a hostile one trying to
+  // OOM a browser tab. Mirrors the Rust port's `take(1_048_576)`.
+  const MAX_RESPONSE_BYTES = 1_048_576;
+  const contentLength = response.headers?.get?.('content-length');
+  if (contentLength && Number(contentLength) > MAX_RESPONSE_BYTES) {
+    throw new Error(`Calendar response too large (${contentLength} bytes) from ${url}`);
+  }
+
   const body = await response.arrayBuffer();
+  if (body.byteLength > MAX_RESPONSE_BYTES) {
+    throw new Error(`Calendar response too large (${body.byteLength} bytes) from ${url}`);
+  }
   if (body.byteLength === 0) {
     return null;
   }
