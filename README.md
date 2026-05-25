@@ -1,5 +1,7 @@
 # zeitstempel
 
+[![npm version](https://img.shields.io/npm/v/zeitstempel.svg)](https://www.npmjs.com/package/zeitstempel)
+
 A lightweight TypeScript library for the full [OpenTimestamps](https://opentimestamps.org/) lifecycle: **stamp**, **upgrade**, and **verify** -- with optional React components. Works in browsers and Node.js.
 
 *Zeitstempel* is German for "timestamp". This is the TypeScript sibling of [zeitstempel](https://github.com/xfaSts9cwY6VqLNTMAtR/zeitstempel), a Rust CLI for the same purpose.
@@ -13,6 +15,14 @@ OpenTimestamps lets you prove that data existed at a certain point in time by an
 3. **Verify** -- replay the proof's hash operations and check the result against a real Bitcoin block header
 
 The entire core is about 1,300 lines of TypeScript -- significantly smaller than the reference [python-opentimestamps](https://github.com/opentimestamps/python-opentimestamps) implementation. The binary `.ots` format parser, serializer, tree walker, and operation replay engine are all written from scratch. The only runtime dependency is `@noble/hashes` for cryptographic hash functions.
+
+## A note on privacy
+
+OpenTimestamps anchors a *hash* to the Bitcoin blockchain -- not the data itself. The 32-byte digest is the only thing that ever needs to leave your machine.
+
+In my view this is a real issue with the standard implementation at [opentimestamps.org](https://opentimestamps.org/): the web tool asks you to hand over the file itself. Even if the page happens to hash client-side today, the design trains users to drop sensitive files into a "verification tool" -- and a compromised page or a malicious mirror could exfiltrate them without the user noticing. For anything you wouldn't want a stranger to read, that's a hard no.
+
+zeitstempel does it the other way round by default. **Hash locally, ship only the digest.** `stampFile(bytes)` computes SHA256 in-process and `stampHash(hexDigest)` accepts a pre-computed digest directly -- the only thing that ever leaves the runtime is the 32-byte SHA256. The calendar can confirm the timestamp without ever seeing what was timestamped.
 
 ## Install
 
