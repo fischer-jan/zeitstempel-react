@@ -22,8 +22,6 @@ OpenTimestamps anchors a *hash* to the Bitcoin blockchain -- not the data itself
 
 In my view this is a real issue with the standard implementation at [opentimestamps.org](https://opentimestamps.org/): the web tool asks you to hand over the file itself. Even if the page happens to hash client-side today, the design trains users to drop sensitive files into a "verification tool" -- and a compromised page or a malicious mirror could exfiltrate them without the user noticing. For anything you wouldn't want a stranger to read, that's a hard no.
 
-zeitstempel does it the other way round by default. **Hash locally, ship only the digest.** `stampFile(bytes)` computes SHA256 in-process and `stampHash(hexDigest)` accepts a pre-computed digest directly -- the only thing that ever leaves the runtime is the 32-byte SHA256. The calendar can confirm the timestamp without ever seeing what was timestamped.
-
 ## Install
 
 ```bash
