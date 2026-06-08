@@ -43,28 +43,38 @@ function summarizeResults(results: VerifyResult[]): VerifyStatus {
   return 'error';
 }
 
+/**
+ * Inline SVG icons. Sized in `em` so they inherit the surrounding
+ * font-size by default (no CSS framework required); pass `size` or a
+ * `className` to override.
+ */
+interface IconProps {
+  className?: string;
+  size?: string;
+}
+
 /** Simple shield icon as inline SVG. */
-function ShieldIcon({ className }: { className?: string }) {
+function ShieldIcon({ className, size = '1em' }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+    <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
     </svg>
   );
 }
 
 /** Simple check icon. */
-function CheckIcon({ className }: { className?: string }) {
+function CheckIcon({ className, size = '1em' }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+    <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
       <path d="M20 6L9 17l-5-5" />
     </svg>
   );
 }
 
 /** Simple clock icon. */
-function ClockIcon({ className }: { className?: string }) {
+function ClockIcon({ className, size = '1em' }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+    <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
       <circle cx="12" cy="12" r="10" />
       <path d="M12 6v6l4 2" />
     </svg>
@@ -111,8 +121,7 @@ export function VerifyTimestampButton({
 
   const isClickable = status === 'idle' || status === 'error' || status === 'failed';
   const Icon = STATUS_ICONS[status];
-  const sizeClasses = size === 'md' ? 'p-2' : 'p-1.5';
-  const iconSize = size === 'md' ? 'w-4 h-4' : 'w-3.5 h-3.5';
+  const iconSize = size === 'md' ? '1.25em' : '1em';
 
   // Get the first verified result for display
   const verifiedResult = results?.find(r => r.status === 'verified');
@@ -143,16 +152,14 @@ export function VerifyTimestampButton({
     <button
       onClick={isClickable ? handleClick : undefined}
       disabled={status === 'verifying'}
-      className={`inline-flex items-center gap-1.5 rounded-md transition-colors ${sizeClasses} ${className}`}
+      className={className}
       title={tooltip}
       aria-label={tooltip}
     >
-      <Icon className={`${iconSize} ${status === 'verifying' ? 'animate-pulse' : ''}`} />
-      {showLabel && <span className="text-xs font-medium">{labels[status]}</span>}
+      <Icon size={iconSize} />
+      {showLabel && <span>{labels[status]}</span>}
       {status === 'verified' && verifiedResult && verifiedResult.status === 'verified' && (
-        <span className="text-[10px] font-mono">
-          #{verifiedResult.height.toLocaleString()}
-        </span>
+        <span>#{verifiedResult.height.toLocaleString()}</span>
       )}
     </button>
   );

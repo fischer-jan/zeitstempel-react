@@ -158,7 +158,9 @@ Download links for hash files and `.ots` proofs, plus a link to opentimestamps.o
 />
 ```
 
-All components are unstyled by default -- use `className` props to apply your own styles.
+All components are unstyled by default and ship no CSS or framework dependency -- they
+render semantic HTML and inline SVG icons (sized in `em`, so they follow the surrounding
+font size). Pass a `className` to each component to apply your own styles.
 
 ## Testing
 
@@ -190,7 +192,7 @@ src/
     writer.ts      Binary .ots format serializer (inverse of parser)
     operations.ts  Hash/append/prepend/reverse operation executors
     bitcoin.ts     Blockstream.info API client (mempool.space fallback)
-    crypto.ts      SHA256, SHA1, RIPEMD160 via @noble/hashes
+    crypto.ts      SHA256, SHA1, RIPEMD160, Keccak256 via @noble/hashes
     info.ts        ASCII art proof tree renderer
     hex.ts         Hex encoding/decoding utilities
     types.ts       TypeScript types (OtsFile, Timestamp, Attestation, etc.)
@@ -211,7 +213,7 @@ src/
 - ASCII art proof tree renderer
 
 ### Dependencies
-- `@noble/hashes` -- cryptographic hash functions (SHA256, SHA1, RIPEMD160)
+- `@noble/hashes` -- cryptographic hash functions (SHA256, SHA1, RIPEMD160, Keccak256)
 - React 18+ -- optional peer dependency, only needed for the React components
 
 ## Supported features

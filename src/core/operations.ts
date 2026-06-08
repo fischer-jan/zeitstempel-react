@@ -7,7 +7,7 @@
  * use crypto.subtle which returns Promises.
  */
 
-import { sha256, sha1, ripemd160 } from './crypto.js';
+import { sha256, sha1, ripemd160, keccak256 } from './crypto.js';
 import { bytesToHex } from './hex.js';
 import type { HashOp } from './constants.js';
 import type { Operation } from './types.js';
@@ -34,7 +34,7 @@ export async function applyOperation(op: Operation, msg: Uint8Array): Promise<Ui
     case 'ripemd160':
       return ripemd160(msg);
     case 'keccak256':
-      throw new Error('Keccak256 is not supported');
+      return keccak256(msg);
     case 'reverse': {
       const out = new Uint8Array(msg);
       out.reverse();
@@ -51,6 +51,6 @@ export async function hashContents(data: Uint8Array, hashOp: HashOp): Promise<Ui
     case 'sha256':    return sha256(data);
     case 'sha1':      return sha1(data);
     case 'ripemd160': return ripemd160(data);
-    case 'keccak256': throw new Error('Keccak256 is not supported');
+    case 'keccak256': return keccak256(data);
   }
 }

@@ -7,6 +7,7 @@
  */
 
 import { ripemd160 as nobleRipemd160 } from '@noble/hashes/ripemd160';
+import { keccak_256 as nobleKeccak256 } from '@noble/hashes/sha3';
 
 /** SHA256 hash using native crypto. */
 export async function sha256(data: Uint8Array): Promise<Uint8Array> {
@@ -32,4 +33,15 @@ export async function sha1(data: Uint8Array): Promise<Uint8Array> {
 /** RIPEMD160 hash using @noble/hashes (synchronous). */
 export function ripemd160(data: Uint8Array): Uint8Array {
   return nobleRipemd160(data);
+}
+
+/**
+ * Keccak-256 hash using @noble/hashes (synchronous).
+ *
+ * This is the original Keccak (NIST submission) padding, as used by
+ * Ethereum — NOT the later SHA3-256 standard. OpenTimestamps proofs
+ * built over Ethereum/keccak chains use this variant.
+ */
+export function keccak256(data: Uint8Array): Uint8Array {
+  return nobleKeccak256(data);
 }

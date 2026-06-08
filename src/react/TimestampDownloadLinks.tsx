@@ -60,10 +60,19 @@ function downloadFile(content: string | Uint8Array, filename: string, mimeType =
   URL.revokeObjectURL(url);
 }
 
+/**
+ * Inline SVG icons, sized in `em` so they inherit the surrounding
+ * font-size by default (no CSS framework required).
+ */
+interface IconProps {
+  className?: string;
+  size?: string;
+}
+
 /** Simple download icon. */
-function DownloadIcon({ className }: { className?: string }) {
+function DownloadIcon({ className, size = '1em' }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+    <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       <polyline points="7 10 12 15 17 10" />
       <line x1="12" y1="15" x2="12" y2="3" />
@@ -72,9 +81,9 @@ function DownloadIcon({ className }: { className?: string }) {
 }
 
 /** Simple external link icon. */
-function ExternalLinkIcon({ className }: { className?: string }) {
+function ExternalLinkIcon({ className, size = '1em' }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+    <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
       <polyline points="15 3 21 3 21 9" />
       <line x1="10" y1="14" x2="21" y2="3" />
@@ -116,49 +125,49 @@ export function TimestampDownloadLinks({
 
   if (compact) {
     return (
-      <div className={`inline-flex items-center gap-1 ${className}`}>
-        <button onClick={handleDownloadHash} title="Download hash for verification" className="p-1 rounded">
-          <DownloadIcon className="w-3.5 h-3.5" />
+      <div className={className}>
+        <button onClick={handleDownloadHash} title="Download hash for verification">
+          <DownloadIcon />
         </button>
-        <button onClick={handleDownloadProof} title="Download .ots proof" className="p-1 rounded">
-          <DownloadIcon className="w-3.5 h-3.5" />
+        <button onClick={handleDownloadProof} title="Download .ots proof">
+          <DownloadIcon />
         </button>
-        <button onClick={handleOpenVerifier} title="Verify at opentimestamps.org" className="p-1 rounded">
-          <ExternalLinkIcon className="w-3.5 h-3.5" />
+        <button onClick={handleOpenVerifier} title="Verify at opentimestamps.org">
+          <ExternalLinkIcon />
         </button>
       </div>
     );
   }
 
   return (
-    <div className={`space-y-2 ${className}`}>
-      <p className="text-xs text-gray-500">{explanation}</p>
+    <div className={className}>
+      <p>{explanation}</p>
 
-      <div className="flex flex-wrap gap-2">
-        <button onClick={handleDownloadHash} className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium">
-          <DownloadIcon className="w-3 h-3" />
+      <div>
+        <button onClick={handleDownloadHash}>
+          <DownloadIcon />
           {hashFile}
         </button>
-        <button onClick={handleDownloadProof} className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium">
-          <DownloadIcon className="w-3 h-3" />
+        <button onClick={handleDownloadProof}>
+          <DownloadIcon />
           {proofFile}
         </button>
       </div>
 
-      <div className="flex items-center gap-1 text-xs">
-        <span className="text-gray-500">{verifyAt}</span>
-        <button onClick={handleOpenVerifier} className="inline-flex items-center gap-0.5 text-blue-600 hover:underline">
+      <div>
+        <span>{verifyAt}</span>
+        <button onClick={handleOpenVerifier}>
           opentimestamps.org
-          <ExternalLinkIcon className="w-3 h-3" />
+          <ExternalLinkIcon />
         </button>
       </div>
 
-      <details className="text-xs text-gray-400">
-        <summary className="cursor-pointer hover:text-gray-600">{technicalDetails}</summary>
-        <div className="mt-1 p-2 rounded font-mono text-[10px] break-all bg-gray-50">
-          <div><span className="font-semibold">contentHash:</span> {timestamp.contentHash}</div>
+      <details>
+        <summary>{technicalDetails}</summary>
+        <div>
+          <div><strong>contentHash:</strong> {timestamp.contentHash}</div>
           {timestamp.timestampHash && (
-            <div className="mt-1"><span className="font-semibold">timestampHash:</span> {timestamp.timestampHash}</div>
+            <div><strong>timestampHash:</strong> {timestamp.timestampHash}</div>
           )}
         </div>
       </details>

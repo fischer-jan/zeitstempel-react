@@ -59,15 +59,10 @@ export function TimestampStatus({
   })();
 
   return (
-    <span
-      className={`inline-flex items-center gap-1 text-xs ${className}`}
-      title={detail || labels[state]}
-    >
+    <span className={className} title={detail || labels[state]}>
       <span>{icon}</span>
       <span>{labels[state]}</span>
-      {detail && state === 'verified' && (
-        <span className="font-mono text-[10px]">{detail}</span>
-      )}
+      {detail && state === 'verified' && <span>{detail}</span>}
     </span>
   );
 }

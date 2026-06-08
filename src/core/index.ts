@@ -19,7 +19,7 @@ export type { HashOp } from './constants.js';
 export { bytesToHex, hexToBytes } from './hex.js';
 
 // Crypto
-export { sha256, sha1, ripemd160 } from './crypto.js';
+export { sha256, sha1, ripemd160, keccak256 } from './crypto.js';
 
 // Parser + Writer
 export { parseOts, parseTimestampFromBytes, countAttestations, findBitcoinHeight, hasPending, ParseError } from './parser.js';
@@ -29,7 +29,7 @@ export { writeOts } from './writer.js';
 export { applyOperation, hashContents } from './operations.js';
 
 // Verification
-export { verifyFile, verifyHash, verifyDigest } from './verify.js';
+export { verifyFile, verifyDigest } from './verify.js';
 
 // Bitcoin API
 export { getBlockInfo, merkleRootToLeBytes } from './bitcoin.js';

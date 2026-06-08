@@ -53,10 +53,12 @@ describe('applyOperation', () => {
     expect(result).toEqual(new TextEncoder().encode('abcd'));
   });
 
-  it('keccak256 throws', async () => {
-    await expect(
-      applyOperation({ type: 'keccak256' }, new Uint8Array([]))
-    ).rejects.toThrow('Keccak256');
+  it('keccak256 of empty input', async () => {
+    // Canonical Keccak-256 (Ethereum) empty-string digest.
+    const result = await applyOperation({ type: 'keccak256' }, new Uint8Array([]));
+    expect(bytesToHex(result)).toBe(
+      'c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470'
+    );
   });
 });
 
@@ -66,6 +68,14 @@ describe('hashContents', () => {
     const result = await hashContents(data, 'sha256');
     expect(bytesToHex(result)).toBe(
       '03ba204e50d126e4674c005e04d82e84c21366780af1f43bd54a37816b6ab340'
+    );
+  });
+
+  it('hashes "Hello World!\\n" with Keccak256', async () => {
+    const data = new TextEncoder().encode('Hello World!\n');
+    const result = await hashContents(data, 'keccak256');
+    expect(bytesToHex(result)).toBe(
+      'dc85a6bbfd4658040ef305c9333cf0d5a82ede2854f112549f3925df6b2c0e71'
     );
   });
 });

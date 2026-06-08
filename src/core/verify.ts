@@ -41,17 +41,6 @@ export async function verifyFile(
 }
 
 /**
- * Verify an .ots proof where the input is already a content hash.
- * For double-hash patterns where the "file" is a hash string.
- */
-export async function verifyHash(
-  hashData: Uint8Array,
-  otsData: Uint8Array,
-): Promise<VerifyResult[]> {
-  return verifyFile(hashData, otsData);
-}
-
-/**
  * Verify an .ots proof against a pre-computed digest (hex string).
  *
  * Use this when you already have the hash that was stamped (e.g.,

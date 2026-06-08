@@ -40,8 +40,7 @@ export async function stampHash(sha256Hex: string): Promise<Uint8Array> {
   }
 
   // Generate 16-byte random nonce for privacy
-  const nonce = new Uint8Array(16);
-  crypto.getRandomValues(nonce);
+  const nonce = await getRandomBytes(16);
 
   // Compute calendar_digest = SHA256(nonce || fileDigest)
   const combined = new Uint8Array(nonce.length + fileDigest.length);
@@ -103,6 +102,23 @@ export async function stampHash(sha256Hex: string): Promise<Uint8Array> {
 export async function stampFile(fileData: Uint8Array): Promise<Uint8Array> {
   const digest = await sha256(fileData);
   return stampHash(bytesToHex(digest));
+}
+
+/**
+ * Cryptographically-secure random bytes.
+ *
+ * Prefers the Web Crypto API (browsers — including insecure http:
+ * contexts — and Node 19+), falling back to node:crypto for older Node
+ * runtimes that lack the `crypto` global. This mirrors the crypto.subtle
+ * fallback in crypto.ts. (Note: getRandomValues is *not* gated on a
+ * secure context — only crypto.subtle is.)
+ */
+async function getRandomBytes(n: number): Promise<Uint8Array> {
+  if (typeof globalThis.crypto?.getRandomValues === 'function') {
+    return globalThis.crypto.getRandomValues(new Uint8Array(n));
+  }
+  const { randomBytes } = await import('node:crypto');
+  return new Uint8Array(randomBytes(n));
 }
 
 /** Submit a 32-byte digest to a calendar server via HTTP POST. */
