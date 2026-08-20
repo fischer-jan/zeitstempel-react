@@ -4,7 +4,7 @@
 
 A lightweight TypeScript library for the full [OpenTimestamps](https://opentimestamps.org/) lifecycle: **stamp**, **upgrade**, and **verify** -- with optional React components. Works in browsers and Node.js.
 
-*Zeitstempel* is German for "timestamp". This is the TypeScript sibling of [zeitstempel](https://github.com/xfaSts9cwY6VqLNTMAtR/zeitstempel), a Rust CLI for the same purpose.
+*Zeitstempel* is German for "timestamp". This is the TypeScript sibling of [zeitstempel](https://github.com/fischer-jan/zeitstempel), a Rust CLI for the same purpose.
 
 ## What it does
 
@@ -230,7 +230,7 @@ src/
 
 ## See also
 
-**[zeitstempel](https://github.com/xfaSts9cwY6VqLNTMAtR/zeitstempel)** -- the Rust CLI version. Same stamp/upgrade/verify lifecycle, compiles to a single portable binary. Use it if you want a command-line tool rather than a library.
+**[zeitstempel](https://github.com/fischer-jan/zeitstempel)** -- the Rust CLI version. Same stamp/upgrade/verify lifecycle, compiles to a single portable binary. Use it if you want a command-line tool rather than a library.
 
 ## License
 
