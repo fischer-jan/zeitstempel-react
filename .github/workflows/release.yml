@@ -1,0 +1,47 @@
+# Publishes to npm via Trusted Publishing (OIDC) — no tokens anywhere.
+#
+# One-time setup on npmjs.com (package zeitstempel → Settings →
+# Trusted Publisher): GitHub Actions, owner "fischer-jan",
+# repository "zeitstempel-react", workflow filename "release.yml".
+#
+# To release: bump the version in package.json, commit, then
+#   git tag v<version> && git push --tags
+
+name: Release to npm
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  id-token: write # OIDC token for npm trusted publishing
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+
+      # Trusted publishing requires npm >= 11.5.1
+      - run: npm install -g npm@latest
+
+      - name: Check tag matches package.json version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$pkg" ]; then
+            echo "Tag v$tag does not match package.json version $pkg" >&2
+            exit 1
+          fi
+
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npm publish
