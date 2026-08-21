@@ -24,13 +24,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No registry-url here: it writes an .npmrc with a NODE_AUTH_TOKEN
+      # placeholder, and a configured token — even a bogus one — takes
+      # precedence over the OIDC exchange and breaks trusted publishing.
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          registry-url: 'https://registry.npmjs.org'
 
       # Trusted publishing requires npm >= 11.5.1
       - run: npm install -g npm@latest
+      - run: npm --version
 
       - name: Check tag matches package.json version
         run: |
