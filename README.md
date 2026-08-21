@@ -18,9 +18,11 @@ The entire core is about 1,300 lines of TypeScript -- significantly smaller than
 
 ## A note on privacy
 
-OpenTimestamps anchors a *hash* to the Bitcoin blockchain -- not the data itself. The 32-byte digest is the only thing that ever needs to leave your machine.
+An OpenTimestamps proof is built from your data's *hash*, never from the data itself. The hash is a 32-byte digest that reveals nothing about the content, and it is the only thing that ever needs to leave the user's machine. This library sticks to that rule: hashing happens locally (in the browser or in Node), and what gets submitted is the digest blinded with a random nonce -- so not even the calendar server can link the submission to the data.
 
-In my view this is a real issue with the standard implementation at [opentimestamps.org](https://opentimestamps.org/): the web tool asks you to hand over the file itself. Even if the page happens to hash client-side today, the design trains users to drop sensitive files into a "verification tool" -- and a compromised page or a malicious mirror could exfiltrate them without the user noticing. For anything you wouldn't want a stranger to read, that's a hard no.
+The official web tool at [opentimestamps.org](https://opentimestamps.org/) works differently: it asks you to drop the file itself into a browser page. Today that page computes the hash in your browser and uploads nothing -- but you can't see that from the outside, and you wouldn't notice if it changed. A compromised page, or a convincing look-alike mirror, could quietly upload every file it receives. Just as bad, the workflow teaches people that handing a document to a website is a normal part of timestamping. It isn't -- the protocol never needs the file.
+
+So for anything you wouldn't show a stranger: hash locally, share only the digest. With this library you can build exactly that -- `stampHash` and `verifyDigest` work from a pre-computed digest, so the original data never has to touch your code path at all.
 
 ## Install
 
