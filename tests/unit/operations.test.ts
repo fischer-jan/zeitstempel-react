@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { applyOperation, hashContents } from '../../src/core/operations.js';
+import { applyOperation, hashContents, MAX_MSG_LEN } from '../../src/core/operations.js';
 import { bytesToHex } from '../../src/core/hex.js';
 
 describe('applyOperation', () => {
@@ -59,6 +59,21 @@ describe('applyOperation', () => {
     expect(bytesToHex(result)).toBe(
       'c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470'
     );
+  });
+
+  it('rejects a hexlify that would exceed the message cap', async () => {
+    // Hexlify doubles the message; past the cap it must throw, not allocate.
+    const big = new Uint8Array(MAX_MSG_LEN / 2 + 1);
+    await expect(applyOperation({ type: 'hexlify' }, big)).rejects.toThrow(
+      'refusing to continue',
+    );
+  });
+
+  it('rejects an append that would exceed the message cap', async () => {
+    const big = new Uint8Array(MAX_MSG_LEN);
+    await expect(
+      applyOperation({ type: 'append', data: new Uint8Array(1) }, big),
+    ).rejects.toThrow('refusing to continue');
   });
 });
 

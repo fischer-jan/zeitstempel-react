@@ -17,6 +17,7 @@ import {
   HASH_OP_TO_TAG,
 } from './constants.js';
 import { writeVaruint, writeVarbytes, _ByteBuffer as ByteBuffer } from './writer.js';
+import { parseTimestampFromBytes } from './parser.js';
 import { hexToBytes, bytesToHex } from './hex.js';
 
 /** Calendar servers to submit to. */
@@ -55,6 +56,12 @@ export async function stampHash(sha256Hex: string): Promise<Uint8Array> {
   for (const server of CALENDAR_SERVERS) {
     try {
       const data = await submitToCalendar(server, calendarDigest);
+      // Only embed responses that parse as a valid timestamp tree — a
+      // broken or malicious calendar response would otherwise produce
+      // a corrupt .ots while stamping reports success. Parsing also
+      // runs the calendar-URI validation on any pending attestations
+      // the server returned.
+      parseTimestampFromBytes(data);
       responses.push({ server, data });
     } catch (e) {
       errors.push(`${server}: ${e instanceof Error ? e.message : String(e)}`);

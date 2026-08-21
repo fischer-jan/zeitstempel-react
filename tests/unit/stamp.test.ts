@@ -71,6 +71,16 @@ describe('stampHash', () => {
     await expect(stampHash('aabb')).rejects.toThrow('Expected 32-byte SHA256 digest');
   });
 
+  it('rejects a calendar response that is not a valid timestamp tree', async () => {
+    // A broken or malicious calendar returning garbage must not end up
+    // embedded in the .ots — stamping fails instead of writing a
+    // corrupt proof.
+    const garbage = new TextEncoder().encode('this is not a timestamp tree');
+    vi.stubGlobal('fetch', mockCalendarServer(garbage));
+
+    await expect(stampHash('aa'.repeat(32))).rejects.toThrow('No calendar server responded');
+  });
+
   it('throws when no calendar server responds', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Connection refused')));
     await expect(stampHash('aa'.repeat(32))).rejects.toThrow('No calendar server responded');

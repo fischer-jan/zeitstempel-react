@@ -3,8 +3,9 @@ import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { verifyFile, verifyDigest } from '../../src/core/verify.js';
 import { parseOts } from '../../src/core/parser.js';
+import { writeOts } from '../../src/core/writer.js';
 import { applyOperation, hashContents } from '../../src/core/operations.js';
-import { bytesToHex } from '../../src/core/hex.js';
+import { bytesToHex, hexToBytes } from '../../src/core/hex.js';
 import type { Timestamp } from '../../src/core/types.js';
 
 const FIXTURE_DIR = resolve(__dirname, '../fixtures');
@@ -126,5 +127,37 @@ describe('verifyDigest', () => {
   it('throws when digest does not match the .ots file', async () => {
     const wrongDigest = 'ff'.repeat(32);
     await expect(verifyDigest(wrongDigest, otsData)).rejects.toThrow('Digest mismatch');
+  });
+
+  it('errors on a hexlify bomb instead of exhausting memory', async () => {
+    // 60 chained hexlify ops double the message 60 times — without the
+    // message-size cap this tries to allocate exabytes. The leaf is a
+    // Pending attestation, so no network is touched.
+    function nest(depth: number): Timestamp {
+      if (depth === 0) {
+        return {
+          attestations: [
+            { type: 'pending', uri: 'https://alice.btc.calendar.opentimestamps.org' },
+          ],
+          ops: [],
+        };
+      }
+      return { attestations: [], ops: [[{ type: 'hexlify' }, nest(depth - 1)]] };
+    }
+
+    const digestHex = 'aa'.repeat(32);
+    const bomb = writeOts({
+      hashOp: 'sha256',
+      fileDigest: hexToBytes(digestHex),
+      timestamp: nest(60),
+    });
+
+    const results = await verifyDigest(digestHex, bomb);
+
+    expect(results).toHaveLength(1);
+    expect(results[0].status).toBe('error');
+    if (results[0].status === 'error') {
+      expect(results[0].message).toContain('refusing to continue');
+    }
   });
 });
