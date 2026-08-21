@@ -22,7 +22,7 @@ An OpenTimestamps proof is built from your data's *hash*, never from the data it
 
 The official web tool at [opentimestamps.org](https://opentimestamps.org/) works differently: it asks you to drop the file itself into a browser page. Today that page computes the hash in your browser and uploads nothing -- but you can't see that from the outside, and you wouldn't notice if it changed. A compromised page, or a convincing look-alike mirror, could quietly upload every file it receives. Just as bad, the workflow teaches people that handing a document to a website is a normal part of timestamping. It isn't -- the protocol never needs the file.
 
-So for anything you wouldn't show a stranger: hash locally, share only the digest. With this library you can build exactly that -- `stampHash` and `verifyDigest` work from a pre-computed digest, so the original data never has to touch your code path at all.
+So for anything you wouldn't show a stranger: hash locally, share only the digest. This library gives you the tools for that, but it doesn't enforce it -- that design choice is yours to make. If you build on `stampHash` and `verifyDigest`, which take a pre-computed digest, the original data never has to enter your code path at all.
 
 ## Install
 
